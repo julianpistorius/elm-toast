@@ -1,4 +1,4 @@
-module Types exposing (..)
+module Types exposing (InternalConfig, InternalNotification, InternalToast, Notification(..), Toast(..))
 
 import Time exposing (Time)
 

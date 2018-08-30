@@ -1,21 +1,11 @@
-module Toast
-    exposing
-        ( Duration
-        , Notification
-        , NotificationState(..)
-        , Timestamp
-        , Toast
-        , ViewFunction
-        , addNotification
-        , createFutureNotification
-        , createNotification
-        , init
-        , initWithTransitionDelay
-        , keyedViews
-        , listActiveNotifications
-        , updateTimestamp
-        , views
-        )
+module Toast exposing
+    ( init, initWithTransitionDelay
+    , addNotification, createNotification, createFutureNotification, listActiveNotifications
+    , updateTimestamp
+    , ViewFunction, views, keyedViews
+    , NotificationState(..), Timestamp, Duration
+    , Toast, Notification
+    )
 
 {-| A view agnostic way to handle toasts and other temporary notifications.
 
@@ -24,14 +14,15 @@ in your elm app. This module takes care of updating the notifications and let's
 you decide what content should be included in your notifications and how these
 should be represented in your view.
 
-* [Minimal implementation](#minimal-implementation)
-* [Reference](#reference)
-    * [Setup](#setup)
-    * [Create, add and list notifications](#create-add-and-list-notifications)
-    * [Update](#update)
-    * [Create views](#create-views-from-the-current-toast)
-    * [Types](#types)
-    * [Opaque types](#opaque-types)
+  - [Minimal implementation](#minimal-implementation)
+  - [Reference](#reference)
+      - [Setup](#setup)
+      - [Create, add and list notifications](#create-add-and-list-notifications)
+      - [Update](#update)
+      - [Create views](#create-views-from-the-current-toast)
+      - [Types](#types)
+      - [Opaque types](#opaque-types)
+
 
 # Minimal implementation
 
@@ -50,7 +41,6 @@ expiration times and transition delays are respected:
         = Tick Time
         | PostNotification String
 
-
     subscriptions : Model -> Sub Msg
     subscriptions model =
         Time.every (Time.second * 1) Tick
@@ -67,8 +57,8 @@ any posted notification to your model's `Toast`:
                     newToast =
                         Toast.updateTimestamp newTime model.toast
                 in
-                    updateTime newTime model
-                        |> updateToast newToast
+                updateTime newTime model
+                    |> updateToast newToast
 
             PostNotification notification ->
                 let
@@ -78,13 +68,11 @@ any posted notification to your model's `Toast`:
                     newToast =
                         Toast.addNotification newToastNotification model.toast
                 in
-                    updateToast newToast model
-
+                updateToast newToast model
 
     updateTime : Time -> Model -> Model
     updateTime time model =
         { model | time = time }
-
 
     updateToast : Toast String -> Model -> Model
     updateToast toast model =
@@ -92,6 +80,7 @@ any posted notification to your model's `Toast`:
 
 
 # Reference
+
 
 ## Setup
 
@@ -101,21 +90,26 @@ You will also need to wire up a `Time` subscription to regularly update it
 
 @docs init, initWithTransitionDelay
 
+
 ## Create, add and list notifications
 
 @docs addNotification, createNotification, createFutureNotification, listActiveNotifications
+
 
 ## Update
 
 @docs updateTimestamp
 
+
 ## Create views from the current Toast
 
 @docs ViewFunction, views, keyedViews
 
+
 ## Types
 
 @docs NotificationState, Timestamp, Duration
+
 
 ## Opaque types
 
@@ -123,9 +117,9 @@ You will also need to wire up a `Time` subscription to regularly update it
 
 -}
 
+import Internal
 import Time exposing (Time)
 import Types
-import Internal
 
 
 {-| Opaque type encapsulating all active notifications. Use `init` or
@@ -161,6 +155,7 @@ expiration time has been reached until the transition delay has passed.
 
 You can use this information in your views to set the view to hidden and apply
 a transition.
+
 -}
 type NotificationState
     = Visible
@@ -175,6 +170,7 @@ as the expiration time is reached.
 The `notificationType` will determine what values are made available to your
 view function. The rest of the documentation will simply refer to this type as
 `a`.
+
 -}
 init : Toast notificationType
 init =
@@ -194,6 +190,7 @@ before removing the DOM element.
 
 Make sure to use `Time.second` (or other constructors)
 to provide a meaningful parameter.
+
 -}
 initWithTransitionDelay : Duration -> Toast a
 initWithTransitionDelay delay =
@@ -209,6 +206,7 @@ no longer remain in the `Visible` state. The exact time at which the
 notification changes its state will depend on the frequency with which
 you call `update` (e.g. if you subscribe to update every second the expiration
 time will be respected up to a one second precision).
+
 -}
 createNotification : a -> Timestamp -> Notification a
 createNotification notificationValue expiration =
@@ -223,6 +221,7 @@ parameters.
 
 If you create a notification with a start time after its expiration time it will
 be discarded when adding it to the Toast.
+
 -}
 createFutureNotification : Timestamp -> a -> Timestamp -> Notification a
 createFutureNotification start notificationValue expiration =
@@ -242,9 +241,10 @@ addNotification notification toast =
         Internal.sanityCheck notification
             && not (Internal.member notification toast)
     then
-        (Internal.listAllNotifications toast)
+        Internal.listAllNotifications toast
             ++ [ notification ]
             |> Internal.updateNotifications toast
+
     else
         toast
 
@@ -274,6 +274,7 @@ given Toast at the provided timestamp.
 The view function you provided will be called for each active notification value
 (of type `a`) and its state to provide some view representation of type
 `viewType` (e.g. Html).
+
 -}
 views : Toast a -> Timestamp -> ViewFunction a viewType -> List viewType
 views toast time viewFunc =
@@ -281,8 +282,8 @@ views toast time viewFunc =
         config =
             Internal.config toast
     in
-        Internal.listAllNotifications toast
-            |> List.filterMap (view config time viewFunc)
+    Internal.listAllNotifications toast
+        |> List.filterMap (view config time viewFunc)
 
 
 {-| Similar to the `views` function, but providing the string
@@ -295,12 +296,12 @@ keyedViews toast time viewFunc =
         config =
             Internal.config toast
     in
-        Internal.listAllNotifications toast
-            |> List.filterMap
-                (\notification ->
-                    view config time viewFunc notification
-                        |> Maybe.map (\view -> ( toString notification, view ))
-                )
+    Internal.listAllNotifications toast
+        |> List.filterMap
+            (\notification ->
+                view config time viewFunc notification
+                    |> Maybe.map (\view -> ( toString notification, view ))
+            )
 
 
 
@@ -319,7 +320,7 @@ with the returned value:
                     newToast =
                         Toast.updateTimestamp newTime model.toast
                 in
-                    { model | toast = newToast, time = newTime }
+                { model | toast = newToast, time = newTime }
 
 -}
 updateTimestamp : Timestamp -> Toast a -> Toast a
@@ -350,12 +351,15 @@ notificationState time config notification =
             if internalNotification.startTime > time then
                 -- Future notification
                 Inactive
+
             else if internalNotification.expirationTime > time then
                 -- Visible notification expiration in the future
                 Active Visible
+
             else if internalNotification.expirationTime + config.hideTransitionDelay >= time then
                 -- Currently dismissing
                 Active Hiding
+
             else
                 -- Past
                 Past
@@ -363,7 +367,7 @@ notificationState time config notification =
 
 filterValidNotifications : Timestamp -> Types.InternalConfig -> List (Notification a) -> List (Notification a)
 filterValidNotifications time config =
-    List.filter (\note -> (notificationState time config note) /= Past)
+    List.filter (\note -> notificationState time config note /= Past)
 
 
 filterActiveNotifications : Timestamp -> Types.InternalConfig -> List (Notification a) -> List (Notification a)

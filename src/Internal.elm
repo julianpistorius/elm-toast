@@ -1,4 +1,4 @@
-module Internal exposing (..)
+module Internal exposing (config, listAllNotifications, member, sanityCheck, updateNotifications)
 
 import Types exposing (..)
 
